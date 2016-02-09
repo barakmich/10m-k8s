@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -ex
 
+HOSTOS=$(uname)
+shopt -s expand_aliases
+
+case "$HOSTOS" in
+  Darwin|FreeBSD) alias sedinline="sed -i \"\"";;
+  *) alias sedinline="sed -i";;
+esac
+
 if [ -z "$1" ]; then
   echo "USAGE: $0 <node_ip> <controller_ip> [<etcd_endpoint>]"
   exit 1
@@ -18,8 +26,8 @@ fi
 
 export CONT="https://$2"
 cp ./multi-node/generic/worker-install.sh /tmp/worker.sh
-sed -i "s!export ETCD_ENDPOINTS=!export ETCD_ENDPOINTS=$ETCD!" /tmp/worker.sh
-sed -i "s!CONTROLLER_ENDPOINT=!CONTROLLER_ENDPOINT=$CONT!" /tmp/worker.sh
+sedinline "s!export ETCD_ENDPOINTS=!export ETCD_ENDPOINTS=$ETCD!" /tmp/worker.sh
+sedinline "s!CONTROLLER_ENDPOINT=!CONTROLLER_ENDPOINT=$CONT!" /tmp/worker.sh
 
 scp /tmp/worker.sh core@$1:/tmp
 scp ./ssl/kube-worker.tar core@$1:/tmp

@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -ex
 
+HOSTOS=$(uname)
+shopt -s expand_aliases
+
+case "$HOSTOS" in
+  Darwin|FreeBSD) alias sedinline="sed -i \"\"";;
+  *) alias sedinline="sed -i";;
+esac
+
 if [ -z "$1" ]; then
   echo "USAGE: $0 <node_ip> [<etcd_endpoint>]"
   exit 1
@@ -13,8 +21,8 @@ fi
 
 
 cp ./multi-node/generic/controller-install.sh /tmp/ctrl.sh
-sed -i "s!export ETCD_ENDPOINTS=!export ETCD_ENDPOINTS=$ETCD!" /tmp/ctrl.sh
-sed -i "/register-node=false/d" /tmp/ctrl.sh
+sedinline "s!export ETCD_ENDPOINTS=!export ETCD_ENDPOINTS=$ETCD!" /tmp/ctrl.sh
+sedinline "/register-node=false/d" /tmp/ctrl.sh
 
 scp /tmp/ctrl.sh core@$1:/tmp
 scp ./ssl/controller.tar core@$1:/tmp
